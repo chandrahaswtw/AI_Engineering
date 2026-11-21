@@ -52,6 +52,12 @@ Models are often named with a size, like `gemma3:270m` or `llama-70b`. The numbe
 - More parameters usually means smarter but slower and more memory-hungry.
 - Small models can run on a laptop. The biggest need data-centre GPUs.
 
+## Frontier models
+
+The **frontier models** are the most capable models available at a given time, such as the latest flagship models from OpenAI, Anthropic and Google. They cost the most to train and run, and today's frontier is usually mid-tier within a year or two.
+
+Most frontier models are closed, so you can only use them through the provider's API. Some open-weight models (for example the larger Llama, DeepSeek and Qwen models) score close to them on many benchmarks, and you can download and run those yourself. The gap varies by task and over time: the best closed models often still lead on hard reasoning and coding, and the biggest open models need serious hardware, so being close in quality doesn't mean being easy to run on a laptop.
+
 ## Distillation
 
 **Distillation** is a way to make a small model that imitates a big one.
