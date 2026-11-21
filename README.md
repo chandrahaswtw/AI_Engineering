@@ -58,6 +58,16 @@ The **frontier models** are the most capable models available at a given time, s
 
 Most frontier models are closed, so you can only use them through the provider's API. Some open-weight models (for example the larger Llama, DeepSeek and Qwen models) score close to them on many benchmarks, and you can download and run those yourself. The gap varies by task and over time: the best closed models often still lead on hard reasoning and coding, and the biggest open models need serious hardware, so being close in quality doesn't mean being easy to run on a laptop.
 
+## Base, chat and reasoning models
+
+Models are trained in stages, and the same family often ships several versions:
+
+- **Base (pretrained):** Trained only to predict the next token. It continues text but doesn't reliably follow instructions. Mainly a starting point for fine-tuning. Often named `base` or `pt`.
+- **Instruction-tuned / chat:** A base model trained further to follow instructions and hold a conversation. This is what you call with `chat/completions` and what this repo uses. Often named `instruct`, `it` or `chat`.
+- **Reasoning:** A chat model trained to think step by step before answering. Better at maths, code and logic, but slower and costlier, so it is overkill for simple tasks.
+
+A reasoning model is mostly a different training recipe, not a different architecture. Many newer models combine chat and reasoning, so check each model's description.
+
 ## Distillation
 
 **Distillation** is a way to make a small model that imitates a big one.
