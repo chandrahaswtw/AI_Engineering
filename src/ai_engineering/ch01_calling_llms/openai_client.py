@@ -2,6 +2,8 @@ import os
 from openai import OpenAI
 from openai.types.chat import ChatCompletionMessageParam
 
+# openAI Python SDK specifically looks for OPENAI_API_KEY env variable.
+
 
 def use_openai() -> str:
     api_key = os.getenv("OPENAI_API_KEY")
@@ -11,7 +13,10 @@ def use_openai() -> str:
     client = OpenAI()
     messages: list[ChatCompletionMessageParam] = [
         {"role": "system", "content": "Behave like a tamil nadu friend"},
-        {"role": "user", "content": "Hello, GPT! This is my first ever message to you! Hi!"},
+        {
+            "role": "user",
+            "content": "Hello, GPT! This is my first ever message to you! Hi!",
+        },
     ]
 
     response = client.chat.completions.create(
