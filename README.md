@@ -37,6 +37,14 @@ Tokens are not necessarily the same as words. APIs usually bill by token.
 
 The **context window** is the maximum number of tokens a model can consider at once, covering both your prompt and its reply. It is a hard limit, which matters for RAG later.
 
+### Try it: OpenAI Tokenizer
+
+[platform.openai.com/tokenizer](https://platform.openai.com/tokenizer) is a free tool from OpenAI. You paste in text and it shows how that text is split into tokens, with each token highlighted and the total token count displayed.
+
+Different model families use different tokenizers, so counts from this tool are exact only for OpenAI models. For other models such as Llama or Gemma, treat them as a rough estimate.
+
+
+
 ## What is inference?
 
 **Inference** means using a trained model to generate a response. Training changes the parameters. Inference only uses them.
