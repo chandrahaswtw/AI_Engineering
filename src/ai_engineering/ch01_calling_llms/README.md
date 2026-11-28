@@ -221,6 +221,92 @@ Pass the provider's own API key and model name. Hosted providers need a real key
 - **Response quality and behavior differ by model.** `gemma3:270m` is tiny, so its replies are far weaker than a hosted model's.
 - **Type hints still say "OpenAI".** Imports like `ChatCompletionMessageParam` only describe the request shape. They don't tie you to OpenAI's servers.
 
+## Streaming responses (`stream=True`)
+
+### The idea
+
+By default `chat.completions.create(...)` waits until the model has generated the whole reply and returns it in one response. For a long output (like a brochure) that can mean many seconds of nothing on screen.
+
+With `stream=True` the server sends the reply as a series of small **chunks** while it is still generating. Each chunk holds a few tokens, so you can show text as it arrives.
+
+```python
+chunks = client.chat.completions.create(
+    model="gpt-6-luna", messages=messages, stream=True
+)
+for chunk in chunks:
+    if not chunk.choices:
+        continue
+    delta = chunk.choices[0].delta.content
+    if delta:
+        print(delta, end="", flush=True)
+```
+
+### What changes compared to a normal call
+
+| | Normal call | `stream=True` |
+|---|---|---|
+| Return value | One `ChatCompletion` object | An iterator of `ChatCompletionChunk` objects |
+| Where the text is | `response.choices[0].message.content` | `chunk.choices[0].delta.content`, one piece per chunk |
+| When you get text | After the full reply is generated | As it is generated |
+
+- `delta.content` can be `None` (for example in the first chunk that only carries the role, or the last chunk that carries the finish reason), so check it before using it.
+- Some chunks can have an empty `choices` list, so guard with `if not chunk.choices`.
+- `print(..., end="", flush=True)` stops Python from adding a newline per chunk and from buffering the output.
+- To get the whole reply at the end, append each `delta` to a list and `"".join(...)` it.
+
+### Where it is used
+
+`create_brouchere_using_LLM(company_name, content, stream=False)` in [`s06_create_brouchre.py`](s06_create_brouchre.py). The default is `False`, which behaves like a normal call. With `stream=True` it prints tokens as they arrive and also returns the full text.
+
+### Things to know
+
+- The total generation time and the token cost are the same. Streaming only changes when you see the text, not how much you pay.
+- The first token arrives much sooner, which is why chat UIs stream.
+- You can't parse a partial reply as a whole. If the output has to be complete JSON, wait for the full text before calling `json.loads`.
+- Errors can happen mid-stream (a dropped connection, for example), after some text has already been printed.
+
+## JSON mode (`response_format={"type": "json_object"}`)
+
+### The idea
+
+Prompts like "respond in JSON" usually work, but the model may wrap the JSON in prose or markdown fences, which breaks `json.loads`. Setting `response_format={"type": "json_object"}` tells the API to constrain the output so that it is **always syntactically valid JSON**.
+
+```python
+response = client.chat.completions.create(
+    model="gpt-6-luna",
+    messages=messages,
+    response_format={"type": "json_object"},
+)
+data = json.loads(response.choices[0].message.content)
+```
+
+### Where it is used
+
+`get_relevant_links_from_LLM(url, all_links)` in [`s06_create_brouchre.py`](s06_create_brouchre.py). The model gets a list of links from a website and must return JSON like this, which the code parses with `json.loads`:
+
+```json
+{
+    "links": [
+        {"type": "about page", "url": "https://full.url/goes/here/about"},
+        {"type": "careers page", "url": "https://another.full.url/careers"}
+    ]
+}
+```
+
+### Rules and limits
+
+- **The prompt must still ask for JSON.** With `json_object`, the API requires the word "JSON" to appear in the messages (the system prompt here says "respond in JSON"). Otherwise the request is rejected.
+- **It guarantees valid JSON, not your schema.** The model can still use different key names or leave fields out. Show an example of the shape you want in the prompt, as the system prompt in `s06` does, and check the result in code.
+- **The result must be a JSON object.** The top level is `{...}`, not a bare list, which is why the example wraps the list in a `"links"` key.
+- **Truncated output is invalid JSON.** If the reply is cut off by `max_tokens` or the context limit (`finish_reason == "length"`), the JSON will be incomplete and `json.loads` will fail.
+- **`message.content` is typed as `str | None`.** Handle `None` (for example a refusal) before calling `json.loads`.
+- **Not every provider supports it.** OpenAI-compatible servers vary (see the caveats in the Ollama section above). Check the provider's docs.
+- **Stricter alternative:** `response_format={"type": "json_schema", ...}` (Structured Outputs) makes the model follow a schema you supply. `json_object` only guarantees valid JSON.
+
+### Combining the two
+
+Streaming and JSON mode can be used together, but the JSON is only usable once the stream has finished, so collect all the chunks first and then parse.
+
 ## Running
 
 [`main.py`](../main.py) calls `load_dotenv()` once at startup, so variables from a `.env` file are available to every module. `main()` currently calls `use_ollama()`. To try another one, change the function it calls.
