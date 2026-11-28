@@ -6,7 +6,10 @@ from ai_engineering.ch01_calling_llms import (
     use_ollama,
     use_tiktoken,
     use_openai_memory_illusion,
+    create_brouchre,
 )
+
+from ai_engineering.utils.scraping import get_subroutes, scrape_content
 
 # Running load_dotenv() once at the entrypoint (main.py) is enough.
 # os.environ is a single global dictionary shared across your entire running Python process. Any module imported or function called after load_dotenv() has access to those environment variables.
@@ -15,7 +18,7 @@ load_dotenv()
 
 
 def main() -> None:
-    print(use_openai_memory_illusion())
+    print(create_brouchre("Hugging face", "https://huggingface.co/tasks"))
 
 
 if __name__ == "__main__":

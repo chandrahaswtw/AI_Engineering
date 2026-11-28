@@ -5,6 +5,7 @@ from ai_engineering.ch01_calling_llms.s04_tiktoken_example import use_tiktoken
 from ai_engineering.ch01_calling_llms.s05_illusion_of_memory import (
     use_openai_memory_illusion,
 )
+from ai_engineering.ch01_calling_llms.s06_create_brouchre import create_brouchre
 
 __all__ = [
     "use_ollama",
@@ -12,4 +13,5 @@ __all__ = [
     "use_openai_api",
     "use_openai_memory_illusion",
     "use_tiktoken",
+    "create_brouchre",
 ]
